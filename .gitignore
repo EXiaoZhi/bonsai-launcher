@@ -1,0 +1,22 @@
+# 引擎二进制（体积大，不随代码分发，用户自行放入 engine/）
+engine/*.exe
+engine/*.dll
+
+# 模型文件
+model/*.gguf
+model/*.bin
+
+# 运行产生的数据
+chat-history/
+chat-workspace/
+gateway/data/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 系统文件
+Thumbs.db
+.DS_Store

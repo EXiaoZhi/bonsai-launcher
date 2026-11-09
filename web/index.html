@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Bonsai 网关 · 本地聊天</title>
+<link rel="icon" href="/favicon.ico" type="image/png">
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+
+<!-- 图标精灵：全部 16px / stroke-width 1.5 / currentColor -->
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-menu" viewBox="0 0 16 16"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.2"/><path d="M10.2 10.2 13.5 13.5"/></symbol>
+  <symbol id="i-drawer" viewBox="0 0 16 16"><rect x="2" y="2.75" width="12" height="10.5" rx="1.5"/><path d="M10 2.75v10.5"/></symbol>
+  <symbol id="i-book" viewBox="0 0 16 16"><path d="M2.5 3.2h4.2c.8 0 1.3.5 1.3 1.3v8.3c0-.7-.5-1.2-1.3-1.2H2.5z"/><path d="M13.5 3.2H9.3c-.8 0-1.3.5-1.3 1.3v8.3c0-.7.5-1.2 1.3-1.2h4.2z"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M4.8 6.4 6.8 8.2 4.8 10M8.6 10.2h2.6"/></symbol>
+  <symbol id="i-send" viewBox="0 0 16 16"><path d="M8 13V3.4M4.2 7.2 8 3.4l3.8 3.8"/></symbol>
+  <symbol id="i-download" viewBox="0 0 16 16"><path d="M8 2.6v7.6M4.8 8.4 8 11.6l3.2-3.2"/><path d="M3 13.4h10"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 16 16"><rect x="4.6" y="4.6" width="6.8" height="6.8" rx="1.2"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5.6" y="5.6" width="8" height="8" rx="1.4"/><path d="M10.6 5.6V3.9c0-.8-.5-1.4-1.4-1.4H3.9c-.8 0-1.4.5-1.4 1.4v5.3c0 .8.5 1.4 1.4 1.4h1.7"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 16 16"><path d="M6.2 3.8 10.4 8l-4.2 4.2"/></symbol>
+  <symbol id="i-close" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 16 16"><path d="M3.8 6.2 8 10.4l4.2-4.2"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 16 16"><path d="M6.2 2.6h3.6l-.5 3.1 2.3 2.3H4.4l2.3-2.3z"/><path d="M8 8v5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 16 16"><circle cx="3.6" cy="8" r=".9" fill="currentColor" stroke="none"/><circle cx="8" cy="8" r=".9" fill="currentColor" stroke="none"/><circle cx="12.4" cy="8" r=".9" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 16 16"><path d="M3.5 4.6h9M6.4 4.6V3.2h3.2v1.4M5 4.6l.6 8.2h4.8l.6-8.2"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 16 16"><path d="M10.6 2.9l2.5 2.5-7.2 7.2-3 .5.5-3z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.9"/><path d="M8 1.6v1.6M8 12.8v1.6M1.6 8h1.6M12.8 8h1.6M3.5 3.5l1.1 1.1M11.4 11.4l1.1 1.1M12.5 3.5l-1.1 1.1M4.6 11.4l-1.1 1.1"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 16 16"><path d="M12.6 9.7A5.2 5.2 0 0 1 6.3 3.4a5.3 5.3 0 1 0 6.3 6.3z"/></symbol>
+  <symbol id="i-spinner" viewBox="0 0 16 16"><path d="M8 2.2a5.8 5.8 0 1 0 5.8 5.8" /></symbol>
+  <symbol id="i-warn" viewBox="0 0 16 16"><path d="M8 2.6 14 13H2z"/><path d="M8 6.4v3.2"/><circle cx="8" cy="11.4" r=".7" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="M3.2 8.4 6.4 11.6 12.8 5.2"/></symbol>
+  <symbol id="i-block" viewBox="0 0 16 16"><rect x="2.4" y="2.4" width="11.2" height="11.2" rx="1.6"/><path d="M2.4 8h11.2"/></symbol>
+</svg>
+
+<!-- ═══════════════ 启动加载层（boot 期间显示，避免白屏） ═══════════════ -->
+<div class="boot" id="boot" aria-busy="true">
+  <svg class="icon boot__spinner" width="20" height="20"><use href="#i-spinner"/></svg>
+  <span class="boot__text">正在连接本地网关…</span>
+</div>
+
+<!-- ═══════════════ 登录层 ═══════════════ -->
+<div class="login" id="login" hidden>
+  <form class="login__card" id="loginForm" novalidate>
+    <div class="login__mark"><svg class="icon" width="20" height="20"><use href="#i-block"/></svg></div>
+    <h1 class="login__title">连接本地网关</h1>
+    <p class="login__hint">
+      令牌在 <code>gateway/data/token.txt</code>（或环境变量 <code>BONSAI_TOKEN</code>）。只在本机流转，不上传。
+    </p>
+    <label class="field">
+      <span class="field__label">访问令牌</span>
+      <input class="field__input" id="tokenInput" type="password" autocomplete="current-password"
+             spellcheck="false" placeholder="粘贴完整令牌" aria-describedby="loginError">
+    </label>
+    <p class="form-error" id="loginError" role="alert" hidden></p>
+    <button class="btn btn--primary btn--wide" id="loginSubmit" type="submit">登录</button>
+    <p class="login__foot">网关未启动？先运行 <code>start-launcher.bat</code>。</p>
+  </form>
+</div>
+
+<!-- ═══════════════ 主界面 ═══════════════ -->
+<div class="app" id="app" hidden>
+
+  <p class="netbanner" id="netBanner" role="status" hidden>网络已断开，恢复后自动继续。</p>
+
+  <header class="topbar">
+    <div class="topbar__left">
+      <button class="iconbtn js-sidebar-toggle" type="button" title="会话列表" aria-label="会话列表">
+        <svg class="icon" width="16" height="16"><use href="#i-menu"/></svg>
+      </button>
+      <button class="iconbtn js-new-session" type="button" title="新对话" aria-label="新对话">
+        <svg class="icon" width="16" height="16"><use href="#i-plus"/></svg>
+      </button>
+      <h1 class="topbar__title" id="sessionTitle" tabindex="0" role="button"
+          title="点击重命名">新对话（未保存）</h1>
+      <span class="topbar__total" id="sessionTotal" hidden></span>
+    </div>
+    <div class="topbar__right">
+      <div class="effortbar" id="effortTop" role="group" aria-label="思考强度"></div>
+      <button class="modelpill" id="modelBtn" type="button" aria-haspopup="listbox" aria-expanded="false">
+        <span class="modelpill__dot" id="modelDot" hidden></span>
+        <span class="modelpill__label" id="modelLabel">加载模型…</span>
+        <svg class="icon icon--12" width="12" height="12"><use href="#i-chevron-down"/></svg>
+      </button>
+      <button class="iconbtn" id="themeBtn" type="button" title="切换主题" aria-label="切换主题">
+        <svg class="icon" width="16" height="16"><use href="#i-moon"/></svg>
+      </button>
+      <button class="iconbtn" id="copyAllBtn" type="button" title="复制全部对话" aria-label="复制全部对话">
+        <svg class="icon" width="16" height="16"><use href="#i-copy"/></svg>
+      </button>
+      <button class="iconbtn" id="exportBtn" type="button" title="导出当前对话为 Markdown" aria-label="导出对话">
+        <svg class="icon" width="16" height="16"><use href="#i-download"/></svg>
+      </button>
+      <button class="iconbtn js-drawer-toggle" id="drawerBtn" type="button" title="运行配置与日志（Ctrl+B）"
+              aria-label="运行配置与日志" aria-expanded="false" aria-controls="drawer">
+        <svg class="icon" width="16" height="16"><use href="#i-drawer"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="layout" id="layout" data-drawer="0">
+
+    <!-- ── 左栏：会话 ── -->
+    <aside class="sidebar" id="sidebar" aria-label="会话列表">
+      <div class="rail">
+        <button class="iconbtn" id="railToggle" type="button" aria-label="展开会话列表">
+          <svg class="icon" width="16" height="16"><use href="#i-menu"/></svg>
+        </button>
+        <button class="iconbtn js-new-session" type="button" aria-label="新对话">
+          <svg class="icon" width="16" height="16"><use href="#i-plus"/></svg>
+        </button>
+        <button class="iconbtn" id="railSearch" type="button" aria-label="搜索会话">
+          <svg class="icon" width="16" height="16"><use href="#i-search"/></svg>
+        </button>
+        <button class="iconbtn" id="railSnippets" type="button" aria-label="片段库">
+          <svg class="icon" width="16" height="16"><use href="#i-book"/></svg>
+        </button>
+      </div>
+      <div class="sidebar__inner">
+        <div class="sidebar__top">
+          <div class="sidebar__newrow">
+            <button class="btn btn--new" id="newSessionBtn" type="button">
+              <svg class="icon" width="14" height="14"><use href="#i-plus"/></svg> 新对话
+            </button>
+            <button class="btn btn--mini" id="selModeBtn" type="button" title="多选并批量删除会话">多选</button>
+          </div>
+          <div class="selbar" id="selBar" hidden>
+            <span class="selbar__count" id="selCount">已选 0</span>
+            <button class="linkbtn" id="selAllBtn" type="button">全选</button>
+            <button class="linkbtn selbar__danger" id="selDelBtn" type="button">删除</button>
+            <button class="linkbtn" id="selCancelBtn" type="button">取消</button>
+          </div>
+          <div class="searchbox">
+            <svg class="icon icon--14" width="14" height="14"><use href="#i-search"/></svg>
+            <input id="searchInput" type="search" placeholder="搜索对话 Ctrl+K" aria-label="搜索对话"
+                   autocomplete="off" spellcheck="false">
+            <button class="searchbox__clear" id="searchClear" type="button" aria-label="清空搜索" hidden>
+              <svg class="icon icon--12" width="12" height="12"><use href="#i-close"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="sessionlist" id="sessionList" role="listbox" aria-label="会话"></div>
+        <div class="sidebar__foot">
+          <button class="btn btn--ghost" id="snippetBtn" type="button">
+            <svg class="icon" width="14" height="14"><use href="#i-book"/></svg>
+            片段库 <kbd>Alt</kbd><kbd>P</kbd>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── 中栏：header / main(滚动) / composer / 状态条 ── -->
+    <section class="main" id="mainPane" aria-label="对话">
+      <header class="chathead">
+        <div class="chathead__title" id="chatTitle">新对话（未保存）</div>
+        <div class="chathead__meta" id="chatMeta"></div>
+      </header>
+
+      <div class="scrollwrap" id="scrollWrap">
+        <main class="scroller" id="scroller" tabindex="-1">
+          <div class="msglist" id="msgList"></div>
+        </main>
+        <button class="pill pill--jump" id="jumpPill" type="button" hidden>
+          <span id="jumpPillText">回到底部 ↓</span>
+        </button>
+      </div>
+
+      <div class="composer" id="composer">
+        <div class="composer__inner">
+          <div class="editbar" id="editBar" hidden>
+            <span>编辑中 · 重新发送将删除此后的消息</span>
+            <button class="linkbtn" id="editCancel" type="button">取消编辑</button>
+          </div>
+          <textarea id="input" rows="1" placeholder="输入消息，Enter 发送，Shift+Enter 换行"
+                    aria-label="消息输入" spellcheck="false"></textarea>
+          <div class="composer__foot">
+            <div class="composer__left">
+              <button class="btn btn--tiny" id="snippetInline" type="button">片段库 Alt+P</button>
+              <button class="btn btn--tiny" id="saveSnippetBtn" type="button" title="Ctrl+Shift+S">存为片段</button>
+              <button class="btn btn--tiny" id="compressBtn" type="button"
+                      title="把较早的消息折叠成块，腾出上下文。只对当前对话生效，不会自动执行">优化上下文</button>
+              <span class="composer__count" id="charCount" aria-live="off">0 字</span>
+            </div>
+            <div class="composer__right">
+              <button class="sendbtn" id="sendBtn" type="button" aria-label="发送" aria-disabled="true">
+                <svg class="icon" width="16" height="16"><use href="#i-send"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <p class="composer__hint" id="composerHint" hidden></p>
+      </div>
+
+      <div class="statusbar" id="statusBar">
+        <span class="statusbar__item statusbar__conn js-wide">
+          <span class="dot" id="connDot" data-state="ok"></span><span id="connText">就绪</span>
+        </span>
+        <span class="statusbar__item" id="budgetItem"><span class="num">—</span> / <span class="num">—</span></span>
+        <span class="statusbar__item js-wide" id="costItem">—</span>
+        <span class="statusbar__item statusbar__note js-wide" id="vramNote" hidden></span>
+        <button class="statusbar__logs" id="logBtn" type="button" aria-label="打开日志">
+          <svg class="icon icon--14" width="14" height="14"><use href="#i-terminal"/></svg>
+          <span class="js-wide">日志</span>
+          <span class="unreaddot" id="logUnread" hidden></span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ── 右栏：配置 / 日志（移动端为底部面板） ── -->
+    <aside class="drawer" id="drawer" aria-label="运行配置与日志" aria-hidden="true">
+      <div class="drawer__grip" id="drawerGrip" aria-hidden="true"><span></span></div>
+      <div class="drawer__tabs" role="tablist" aria-label="抽屉分区">
+        <button class="tab is-active" id="tabConfig" type="button" role="tab" data-tab="config"
+                aria-selected="true" aria-controls="paneConfig">配置</button>
+        <button class="tab tab--mobile" id="tabBlocks" type="button" role="tab" data-tab="blocks"
+                aria-selected="false">折叠块</button>
+        <button class="tab" id="tabLogs" type="button" role="tab" data-tab="logs"
+                aria-selected="false" aria-controls="paneLogs">日志</button>
+        <button class="iconbtn drawer__close" id="drawerClose" type="button" aria-label="关闭">
+          <svg class="icon" width="16" height="16"><use href="#i-close"/></svg>
+        </button>
+      </div>
+
+      <div class="drawer__body" id="drawerBody">
+        <!-- 配置 -->
+        <section class="pane" id="paneConfig" role="tabpanel" aria-labelledby="tabConfig">
+          <div class="sect">
+            <h2 class="sect__title">模型</h2>
+            <button class="modelrow" id="modelRow" type="button" aria-haspopup="listbox">
+              <span class="modelrow__main">
+                <span class="modelrow__label" id="modelRowLabel">—</span>
+                <span class="modelrow__sub" id="modelRowSub">—</span>
+              </span>
+              <svg class="icon icon--12" width="12" height="12"><use href="#i-chevron-down"/></svg>
+            </button>
+          </div>
+          <div class="sect">
+            <h2 class="sect__title">思考强度</h2>
+            <div class="effortbar effortbar--wide" id="effortConfig" role="group" aria-label="思考强度"></div>
+            <p class="sect__note" id="effortNote"></p>
+          </div>
+          <div class="sect">
+            <h2 class="sect__title">采样参数（只读）</h2>
+            <dl class="kv" id="samplingList"></dl>
+          </div>
+          <div class="sect">
+            <h2 class="sect__title">上下文</h2>
+            <div class="meter"><span class="meter__fill" id="contextFill" style="width:0%"></span></div>
+            <div class="kv kv--tight">
+              <div class="kv__row"><dt>已用 / 预算</dt><dd id="contextText">— / —</dd></div>
+              <div class="kv__row"><dt>窗口</dt><dd id="contextWindow">—</dd></div>
+            </div>
+            <p class="sect__note" id="compressNote">自动优化已关闭，长对话请点输入框上方「优化上下文」。</p>
+          </div>
+          <div class="sect" id="blocksSection">
+            <h2 class="sect__title">折叠块 <button class="linkbtn" id="blocksRefresh" type="button">刷新</button></h2>
+            <p class="sect__note" id="blocksHint">点「优化上下文」后才会生成，原文始终可预览。</p>
+            <div class="blocklist" id="blockList"></div>
+            <div class="sect__actions">
+              <button class="btn btn--primary btn--sm" id="expandBtn" type="button" disabled>还原所选</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 日志 -->
+        <section class="pane" id="paneLogs" role="tabpanel" aria-labelledby="tabLogs" hidden>
+          <div class="loghead">
+            <div class="loglevels" id="logLevels" role="group" aria-label="日志级别">
+              <button class="lvlchip" type="button" data-level="all">全部</button>
+              <button class="lvlchip is-on" type="button" data-level="info">信息+</button>
+              <button class="lvlchip" type="button" data-level="warn">警告+</button>
+              <button class="lvlchip" type="button" data-level="error">错误</button>
+            </div>
+            <button class="toggle" id="logFollow" type="button" aria-pressed="true">跟随</button>
+          </div>
+          <div class="logfilter">
+            <div class="searchbox searchbox--log">
+              <input id="logFilter" type="search" placeholder="用 - 排除，例：tool -debug"
+                     aria-label="日志筛选" autocomplete="off" spellcheck="false">
+              <button class="regexbtn" id="logRegex" type="button" aria-pressed="false" title="正则模式">.*</button>
+            </div>
+            <p class="logfilter__err" id="logFilterErr" role="alert" hidden></p>
+            <div class="logfilter__chips" id="logTagChips"></div>
+          </div>
+          <div class="logwrap">
+            <div class="loglist" id="logList" tabindex="0" role="log" aria-live="off"></div>
+            <button class="pill pill--log" id="logPill" type="button" hidden>
+              <span id="logPillText">已暂停 · 0 条新日志 ↓</span>
+            </button>
+          </div>
+          <div class="logfoot">
+            <span id="logStatus">日志已脱敏：密钥、令牌、路径中的用户名显示为 ***。聊天内容不会出现在这里。</span>
+            <button class="linkbtn" id="logCopy" type="button">复制本页</button>
+          </div>
+        </section>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ═══════════════ 浮层 ═══════════════ -->
+
+<!-- 模型下拉 -->
+<div class="overlay overlay--pop" id="modelOverlay" hidden>
+  <div class="popover" id="modelPop" role="dialog" aria-label="选择模型">
+    <div class="popover__head">
+      <span>选择模型</span>
+      <button class="iconbtn" id="modelClose" type="button" aria-label="关闭">
+        <svg class="icon" width="16" height="16"><use href="#i-close"/></svg>
+      </button>
+    </div>
+    <div class="popover__list" id="modelList" role="listbox" aria-label="模型"></div>
+  </div>
+</div>
+
+<!-- 片段库 -->
+<div class="overlay" id="snippetOverlay" hidden>
+  <div class="sheetbox sheetbox--snippet" role="dialog" aria-modal="true" aria-labelledby="snipTitle">
+    <h2 class="sheetbox__title" id="snipTitle">片段库</h2>
+    <div class="searchbox searchbox--overlay">
+      <svg class="icon icon--14" width="14" height="14"><use href="#i-search"/></svg>
+      <input id="snipSearch" type="search" placeholder="搜索片段（标题、正文、变量名）"
+             aria-label="搜索片段" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="sniplist" id="snipList" role="listbox" aria-label="片段"></div>
+    <div class="sheetbox__foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择 · <kbd>Enter</kbd> 插入 · <kbd>Esc</kbd> 关闭</span>
+      <button class="btn btn--tiny btn--danger-ghost" id="snipDelete" type="button" hidden>删除此片段</button>
+    </div>
+  </div>
+</div>
+
+<!-- peek 预览 -->
+<div class="overlay" id="peekOverlay" hidden>
+  <div class="sheetbox sheetbox--peek" role="dialog" aria-modal="true" aria-labelledby="peekTitle">
+    <div class="sheetbox__head">
+      <h2 class="sheetbox__title" id="peekTitle">预览</h2>
+      <button class="iconbtn" id="peekClose" type="button" aria-label="关闭">
+        <svg class="icon" width="16" height="16"><use href="#i-close"/></svg>
+      </button>
+    </div>
+    <p class="warnbar" id="peekWarn" hidden></p>
+    <pre class="peekbody" id="peekBody"></pre>
+    <div class="sheetbox__foot sheetbox__foot--end">
+      <span class="muted">只读，不进入上下文</span>
+      <button class="btn btn--primary btn--sm" id="peekOk" type="button">关闭 Esc</button>
+    </div>
+  </div>
+</div>
+
+<!-- 变量填充 -->
+<div class="overlay" id="varsOverlay" hidden>
+  <div class="sheetbox sheetbox--vars" role="dialog" aria-modal="true" aria-labelledby="varsTitle">
+    <h2 class="sheetbox__title" id="varsTitle">填充变量</h2>
+    <div class="varsbody" id="varsBody"></div>
+    <p class="form-error" id="varsError" role="alert" hidden></p>
+    <label class="checkline">
+      <input type="checkbox" id="varsSkip" checked> 跳过未填项（保留 <code>{{变量}}</code>）
+    </label>
+    <div class="sheetbox__foot sheetbox__foot--end">
+      <button class="btn btn--sm" id="varsCancel" type="button">取消 Esc</button>
+      <button class="btn btn--primary btn--sm" id="varsOk" type="button">插入</button>
+    </div>
+  </div>
+</div>
+
+<!-- 确认框 -->
+<div class="overlay" id="confirmOverlay" hidden>
+  <div class="sheetbox sheetbox--confirm" role="dialog" aria-modal="true" aria-labelledby="cfTitle">
+    <h2 class="sheetbox__title" id="cfTitle">确认</h2>
+    <p class="sheetbox__text" id="cfBody"></p>
+    <div class="sheetbox__foot sheetbox__foot--end">
+      <button class="btn btn--sm" id="cfCancel" type="button">取消</button>
+      <button class="btn btn--primary btn--sm" id="cfOk" type="button">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 单行输入（存为片段等） -->
+<div class="overlay" id="promptOverlay" hidden>
+  <div class="sheetbox sheetbox--confirm" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
+    <h2 class="sheetbox__title" id="pmTitle">存为片段</h2>
+    <label class="field">
+      <span class="field__label">片段标题</span>
+      <input class="field__input" id="pmInput" type="text" maxlength="200" autocomplete="off">
+    </label>
+    <p class="form-error" id="pmError" role="alert" hidden></p>
+    <div class="sheetbox__foot sheetbox__foot--end">
+      <button class="btn btn--sm" id="pmCancel" type="button">取消 Esc</button>
+      <button class="btn btn--primary btn--sm" id="pmOk" type="button">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 快捷键帮助 -->
+<div class="overlay" id="helpOverlay" hidden>
+  <div class="sheetbox sheetbox--help" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="sheetbox__head">
+      <h2 class="sheetbox__title" id="helpTitle">快捷键</h2>
+      <button class="iconbtn" id="helpClose" type="button" aria-label="关闭">
+        <svg class="icon" width="16" height="16"><use href="#i-close"/></svg>
+      </button>
+    </div>
+    <dl class="keylist">
+      <div class="keylist__row"><dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd></dt><dd>聚焦会话搜索</dd></div>
+      <div class="keylist__row"><dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>B</kbd></dt><dd>切换右栏 / 底部面板</dd></div>
+      <div class="keylist__row"><dt><kbd>Alt</kbd> + <kbd>P</kbd></dt><dd>打开片段库</dd></div>
+      <div class="keylist__row"><dt><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd></dt><dd>把输入框内容存为片段</dd></div>
+      <div class="keylist__row"><dt><kbd>Enter</kbd></dt><dd>发送（生成中变为停止）</dd></div>
+      <div class="keylist__row"><dt><kbd>Shift</kbd> + <kbd>Enter</kbd></dt><dd>换行</dd></div>
+      <div class="keylist__row"><dt><kbd>↑</kbd></dt><dd>输入框为空时编辑上一条提问</dd></div>
+      <div class="keylist__row"><dt><kbd>Esc</kbd></dt><dd>逐层关闭：重命名 → 浮层 → 停止生成</dd></div>
+      <div class="keylist__row"><dt><kbd>F2</kbd></dt><dd>重命名选中的会话</dd></div>
+      <div class="keylist__row"><dt><kbd>Delete</kbd></dt><dd>删除选中的会话</dd></div>
+    </dl>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<script type="module" src="/assets/app.js"></script>
+</body>
+</html>

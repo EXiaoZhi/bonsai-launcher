@@ -1,0 +1,26 @@
+{
+  "8085端口长上下文": {
+    "params": {
+      "ctx": 114688,
+      "budget": 8192,
+      "sink": 4096,
+      "gen": 4096,
+      "ratio": 0.1,
+      "cpu_gb": 13,
+      "method": "recency",
+      "kv": "q4_0",
+      "temp": 0.4,
+      "top_p": 0.8,
+      "top_k": 20,
+      "npred": -1,
+      "b": 256,
+      "ub": 64,
+      "threads": 0,
+      "port": 8085,
+      "think": true,
+      "vision": false,
+      "fa": "auto"
+    },
+    "desc": ""
+  }
+}

@@ -1,0 +1,348 @@
+{
+  "version": 1,
+  "gateway": {
+    "host": "127.0.0.1",
+    "port": 8400,
+    "db": "gateway/data/gateway.db",
+    "max_body_bytes": 4194304,
+    "rate_limit": {
+      "per_minute": 120,
+      "burst": 20
+    },
+    "cors_origins": [
+      "http://127.0.0.1:8400",
+      "https://localhost:8443"
+    ],
+    "session_ttl_days": 365,
+    "log_files": [
+      {
+        "name": "27b",
+        "path": "gateway/data/logs/bonsai-27b.log"
+      },
+      {
+        "name": "router",
+        "path": "gateway/data/logs/router.log"
+      }
+    ]
+  },
+  "rerank": {
+    "enabled": true,
+    "model": "bge-reranker-v2-m3-q8_0",
+    "top_n": 0,
+    "sigmoid": true,
+    "note": "网关的 /v1/rerank 用一个固定模型；在启动器 Router 卡「Rerank 模型」里选，和聊天模型互不影响。sigmoid=true 把 bge 的原始 logits 归一化到 0~1",
+    "base_url": ""
+  },
+  "compression": {
+    "auto": false,
+    "note": "auto=false（默认）：不自动压缩上下文，聊天页点「优化上下文」才压；设 true 恢复旧的自动行为",
+    "trigger_lossless_ratio": 0.7,
+    "trigger_summary_ratio": 0.9,
+    "recent_t1_blocks_protected": 3,
+    "max_fold_tokens_per_message": 1200,
+    "expand_budget_per_request": 3,
+    "summary": {
+      "enabled": true,
+      "model": "bonsai-2-9b",
+      "effort": "low",
+      "max_output_tokens": 512,
+      "retry": 1
+    }
+  },
+  "models": [
+    {
+      "id": "bonsai-2-27b-ptq1_0",
+      "label": "Bonsai 2 · 27B",
+      "subtitle": "PTQ1_0 · 8G 卡可用 · 本机主力",
+      "enabled": true,
+      "runtime": "prismml-kvmem",
+      "binary": "engine/llama-kvmem-server.exe",
+      "path": "model/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+      "quant": "PTQ1_0",
+      "upstream": {
+        "mode": "direct",
+        "base_url": "http://127.0.0.1:18200/v1",
+        "model_id": "Ternary-Bonsai-2-27B-PTQ1_0.gguf"
+      },
+      "launch": {
+        "port": 18200,
+        "ngl": 99,
+        "fa": "auto",
+        "c": 32768,
+        "n": 8192,
+        "kv_dtype": "q4_0",
+        "kvmem": {
+          "budget": 8192,
+          "sink": 4096,
+          "gen_reserve": 4096,
+          "cpu_gb": 4,
+          "method": "recency"
+        }
+      },
+      "sampling": {
+        "temp": 1.0,
+        "top_p": 0.95,
+        "top_k": 20,
+        "presence_penalty": 0
+      },
+      "thinking": {
+        "supported": true,
+        "efforts": [
+          "none",
+          "low",
+          "medium",
+          "high"
+        ],
+        "default": "medium",
+        "transport": "chat_template_kwargs"
+      },
+      "context": {
+        "window": 32768,
+        "kv_kib_per_token": 16,
+        "output_reserve": 2048,
+        "thinking_reserve": 4096
+      }
+    },
+    {
+      "id": "bonsai-2-9b",
+      "label": "Bonsai 2 · 9B",
+      "subtitle": "PQ2_0 · 快 · 适合做摘要/路由",
+      "enabled": false,
+      "runtime": "prismml-kvmem",
+      "binary": "engine/llama-kvmem-server.exe",
+      "path": "model/Ternary-Bonsai-2-9B-PQ2_0.gguf",
+      "quant": "PQ2_0",
+      "upstream": {
+        "mode": "direct",
+        "base_url": "http://127.0.0.1:18201/v1",
+        "model_id": "Ternary-Bonsai-2-9B-PQ2_0.gguf"
+      },
+      "launch": {
+        "port": 18201,
+        "ngl": 99,
+        "fa": "auto",
+        "c": 32768,
+        "n": 8192,
+        "kv_dtype": "q4_0",
+        "kvmem": {
+          "budget": 8192,
+          "sink": 4096,
+          "gen_reserve": 4096,
+          "cpu_gb": 3,
+          "method": "recency"
+        }
+      },
+      "sampling": {
+        "temp": 0.7,
+        "top_p": 0.9,
+        "top_k": 40,
+        "presence_penalty": 0.1
+      },
+      "thinking": {
+        "supported": true,
+        "efforts": [
+          "none",
+          "low",
+          "medium"
+        ],
+        "default": "low",
+        "transport": "chat_template_kwargs"
+      },
+      "context": {
+        "window": 32768,
+        "kv_kib_per_token": 8,
+        "output_reserve": 2048,
+        "thinking_reserve": 2048
+      }
+    },
+    {
+      "id": "bonsai-2-4b",
+      "label": "Bonsai 2 · 4B",
+      "subtitle": "PQ2_0 · 边缘/低延迟",
+      "enabled": false,
+      "runtime": "prismml-kvmem",
+      "binary": "engine/llama-kvmem-server.exe",
+      "path": "model/Ternary-Bonsai-2-4B-PQ2_0.gguf",
+      "quant": "PQ2_0",
+      "upstream": {
+        "mode": "direct",
+        "base_url": "http://127.0.0.1:18202/v1",
+        "model_id": "Ternary-Bonsai-2-4B-PQ2_0.gguf"
+      },
+      "launch": {
+        "port": 18202,
+        "ngl": 99,
+        "fa": "auto",
+        "c": 16384,
+        "n": 4096,
+        "kv_dtype": "q4_0",
+        "kvmem": {
+          "budget": 6144,
+          "sink": 4096,
+          "gen_reserve": 2048,
+          "cpu_gb": 2,
+          "method": "recency"
+        }
+      },
+      "sampling": {
+        "temp": 0.7,
+        "top_p": 0.9,
+        "top_k": 40,
+        "presence_penalty": 0.1
+      },
+      "thinking": {
+        "supported": true,
+        "efforts": [
+          "none",
+          "low"
+        ],
+        "default": "none",
+        "transport": "chat_template_kwargs"
+      },
+      "context": {
+        "window": 16384,
+        "kv_kib_per_token": 4,
+        "output_reserve": 1024,
+        "thinking_reserve": 1024
+      }
+    },
+    {
+      "id": "qwen2.5-7b-instruct",
+      "label": "Qwen2.5 · 7B",
+      "subtitle": "Q4_K_M · 标准 GGUF · 走 Router",
+      "enabled": false,
+      "runtime": "llama.cpp-standard",
+      "path": "model/qwen2.5-7b-instruct-q4_k_m.gguf",
+      "quant": "Q4_K_M",
+      "upstream": {
+        "mode": "router",
+        "base_url": "http://127.0.0.1:8330/v1",
+        "model_id": "qwen2.5-7b-instruct-q4_k_m.gguf"
+      },
+      "sampling": {
+        "temp": 0.7,
+        "top_p": 0.9,
+        "top_k": 40,
+        "presence_penalty": 0
+      },
+      "thinking": {
+        "supported": false,
+        "efforts": [],
+        "default": "none",
+        "transport": "none"
+      },
+      "context": {
+        "window": 32768,
+        "kv_kib_per_token": 28,
+        "output_reserve": 2048,
+        "thinking_reserve": 0
+      }
+    }
+  ],
+  "slots": [
+    {
+      "id": "s1",
+      "alias": "bge-reranker-v2-m3-q8_0",
+      "path": "model/bge-reranker-v2-m3-q8_0.gguf",
+      "engine": "llama",
+      "type": "rerank",
+      "port": 18210,
+      "enabled": true,
+      "params": {
+        "ctx_size": "4096",
+        "flash_attn": "on",
+        "cache_type_k": "q4_0",
+        "cache_type_v": "q4_0",
+        "rerank": true
+      },
+      "extra_args": ""
+    },
+    {
+      "id": "s2",
+      "alias": "Ternary-Bonsai-2-9B",
+      "path": "model/Ternary-Bonsai-2-9B-PTQ1_0 (1).gguf",
+      "engine": "kvmem",
+      "type": "chat",
+      "port": 18200,
+      "enabled": true,
+      "params": {
+        "ctx_size": "16384",
+        "flash_attn": "on",
+        "kvmem_budget": "16384",
+        "kvmem_sink_tokens": "4096",
+        "kvmem_gen_reserve": "2048",
+        "kvmem_method": "recency",
+        "kvmem_gpu_ratio": "1.0",
+        "kvmem_cpu_gb": "0",
+        "kv_dtype": "q4_0",
+        "cache_type_k": "q4_0",
+        "cache_type_v": "q4_0",
+        "spec_kv_dtype": "q4_0",
+        "load_mode": "none"
+      },
+      "extra_args": ""
+    },
+    {
+      "id": "smw2tc2yb0",
+      "alias": "embeddinggemma-2-UD-Q4_K_XL",
+      "path": "model/embeddinggemma-2-UD-Q4_K_XL.gguf",
+      "engine": "llama",
+      "type": "embed",
+      "port": 18204,
+      "enabled": true,
+      "params": {
+        "mmproj": "model/mmproj-Q8_0.gguf",
+        "flash_attn": "auto",
+        "cache_type_k": "q4_0",
+        "cache_type_v": "q4_0",
+        "embeddings": true,
+        "pooling": "mean"
+      },
+      "extra_args": ""
+    },
+    {
+      "id": "smw1xkm3p0",
+      "alias": "Qwen3-VL-Reranker-2B.i1-Q4_K_M",
+      "path": "model/Qwen3-VL-Reranker-2B.i1-Q4_K_M.gguf",
+      "engine": "llama",
+      "type": "rerank",
+      "port": 18202,
+      "enabled": true,
+      "params": {
+        "mmproj": "model/Qwen3-VL-Reranker-2B.mmproj-Q8_0.gguf",
+        "ctx_size": "4096",
+        "flash_attn": "auto",
+        "cache_type_k": "q4_0",
+        "cache_type_v": "q4_0",
+        "rerank": true
+      },
+      "extra_args": ""
+    },
+    {
+      "id": "smw1xkm3p1",
+      "alias": "Bonsai 2 · 27B",
+      "path": "model/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+      "engine": "kvmem",
+      "type": "chat",
+      "port": 18203,
+      "enabled": true,
+      "params": {
+        "ctx_size": "16000",
+        "flash_attn": "auto",
+        "load_mode": "none",
+        "kvmem_budget": "16000",
+        "kvmem_sink_tokens": "4096",
+        "kvmem_gen_reserve": "1024",
+        "kvmem_method": "recency",
+        "kvmem_gpu_ratio": "1",
+        "kvmem_cpu_gb": "0",
+        "kv_dtype": "q4_0",
+        "cache_type_k": "q4_0",
+        "cache_type_v": "q4_0",
+        "spec_kv_dtype": "q4_0"
+      },
+      "extra_args": ""
+    }
+  ],
+  "llama_exe": ""
+}

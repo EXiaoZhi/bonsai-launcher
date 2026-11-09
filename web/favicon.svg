@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Bonsai launcher">
+  <rect width="64" height="64" rx="14" fill="#14171c"/>
+  <g>
+    <ellipse cx="22" cy="29" rx="9" ry="6.2" fill="#0b0d10"/>
+    <ellipse cx="42" cy="29" rx="9" ry="6.2" fill="#0b0d10"/>
+    <ellipse cx="22" cy="29" rx="5.2" ry="4.6" fill="#e8841f"/>
+    <ellipse cx="42" cy="29" rx="5.2" ry="4.6" fill="#e8841f"/>
+    <circle cx="22" cy="29" r="2.4" fill="#191108"/>
+    <circle cx="42" cy="29" r="2.4" fill="#191108"/>
+    <circle cx="23.2" cy="27.6" r="0.9" fill="#ffb648"/>
+    <circle cx="43.2" cy="27.6" r="0.9" fill="#ffb648"/>
+    <path d="M6 26 Q20 18 32 22 Q44 18 58 26 L58 34 Q44 40 32 38 Q20 40 6 34 Z" fill="#1c2027"/>
+  </g>
+</svg>
