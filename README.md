@@ -9,7 +9,7 @@
 - **MCP 服务器**：全局配置，所有模型共用工具；渐进式披露省 token
 - **文件空间（Skill）**：选一个本地文件夹，让模型读取/写入其中的文件
 - **OpenAI 兼容网关**：`/v1/chat/completions`、`/v1/embeddings`、`/v1/rerank`、`/v1/models`
-- **全部相对路径**：解压即用，不写死任何绝对路径，可直接上传 GitHub 分发
+
 
 ## 快速开始
 
